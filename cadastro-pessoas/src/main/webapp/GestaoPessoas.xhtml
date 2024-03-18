@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	template="WEB-INF/template/Layout.xhtml">
+
+
+	<ui:define name="conteudo">
+
+		<f:metadata>
+			<f:viewAction action="#{gestaoPessoasBean.todasPessoas}" />
+		</f:metadata>
+
+		<h:form id="frm">
+
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				responsive="true" width="350">
+				<p:commandButton value="No" type="button"
+					styleClass="ui-confirmdialog-no ui-button-flat" />
+				<p:commandButton value="Yes" type="button"
+					styleClass="ui-confirmdialog-yes" />
+			</p:confirmDialog>
+
+			<p:messages id="messages" closable="true">
+			</p:messages>
+			<p:toolbar id="toolbar">
+				<f:facet name="left">
+					<p:inputText id="termoPesquisa" placeholder="Pesquise pelo nome..."
+						size="50" value="#{gestaoPessoasBean.nomePesquisa}" />
+					<p:commandButton value="Pesquisar" icon="pi pi-search"
+						style="margin-left: 10px"
+						actionListener="#{gestaoPessoasBean.pesquisar}"
+						update="pessoasDataTable messages" process="@this termoPesquisa" />
+
+					<p:commandButton value="Cadastrar" icon="pi pi-file"
+						styleClass="ui-button-success" style="margin-left: 10px"
+						actionListener="#{gestaoPessoasBean.prepararNovoCadastro}"
+						oncomplete="PF('pessoaDialogWidgetVar').show()"
+						update="pessoaDialog" process="@this">
+						<p:resetInput target="pessoaDialog" />
+					</p:commandButton>
+
+					<i class="pi pi-bars px-2" style="margin-left: 10px" />
+
+					<p:commandButton title="Editar" icon="pi pi-file-edit"
+						styleClass="ui-button-warning" style="margin-left: 10px"
+						disabled="#{not gestaoPessoasBean.pessoaSelecionada}"
+						actionListener="#{gestaoPessoasBean.prepararEdicao}"
+						oncomplete="PF('pessoaDialogWidgetVar').show()"
+						update="pessoaDialog" process="@this">
+						<p:resetInput target="pessoaDialog" />
+					</p:commandButton>
+
+					<p:commandButton title="Excluir" icon="pi pi-trash"
+						styleClass="ui-button-danger" style="margin-left: 10px"
+						disabled="#{not gestaoPessoasBean.pessoaSelecionada}"
+						actionListener="#{gestaoPessoasBean.excluir}"
+						update="messages pessoasDataTable toolbar" process="@this">
+						<p:confirm icon="ui-icon-alert" header="Confirmação de exclusão"
+							message="Deseja remover a pessoa selecionada?" />
+					</p:commandButton>
+				</f:facet>
+
+			</p:toolbar>
+
+			<p:dataTable id="pessoasDataTable"
+				value="#{gestaoPessoasBean.listaPessoas}" var="pessoa"
+				emptyMessage="Nenhuma pessoa cadastrada!" paginator="true" rows="10"
+				paginatorPosition="bottom" selectionMode="single"
+				selection="#{gestaoPessoasBean.pessoa}" rowKey="#{pessoa.id}">
+
+				<p:ajax event="rowSelect" update="frm:toolbar" />
+
+				<p:ajax event="rowUnselect" update="frm:toolbar" />
+
+				<p:column headerText="Nome" sortBy="#{pessoa.nome}">
+					<h:outputText value="#{pessoa.nome}" />
+				</p:column>
+				<p:column headerText="Data de Nascimento">
+					<h:outputText value="#{pessoa.idade}" />
+				</p:column>
+				<p:column headerText="Sexo">
+					<h:outputText value="#{pessoa.sexo.descricao}" />
+				</p:column>
+				<p:column headerText="CEP">
+					<h:outputText value="#{pessoa.endereco.cep}" />
+				</p:column>
+				<p:column headerText="Cidade">
+					<h:outputText value="#{pessoa.endereco.cidade}" />
+				</p:column>
+				<p:column headerText="Estado">
+					<h:outputText value="#{pessoa.endereco.estado}" />
+				</p:column>
+				<p:column headerText="Logradouro">
+					<h:outputText value="#{pessoa.endereco.logradouro}" />
+				</p:column>
+				<p:column headerText="Numero">
+					<h:outputText value="#{pessoa.endereco.numero}" />
+				</p:column>
+
+			</p:dataTable>
+
+			<p:dialog id="pessoaDialog" header="Cadastro Pessoa"
+				widgetVar="pessoaDialogWidgetVar" modal="true" resizable="false"
+				closeOnEscape="true" draggable="false">
+
+				<p:messages id="cadastroMessages" closable="true">
+					<p:autoUpdate />
+				</p:messages>
+
+				<p:defaultCommand target="salvarCommandButton" scope="pessoaDialog" />
+
+				<h:panelGrid id="pessoaPanelGrid" columns="2"
+					rendered="#{gestaoPessoasBean.pessoa ne null}">
+					<p:outputLabel value="Nome: " for="nome" />
+					<p:inputText id="nome" size="40" maxlength="80"
+						value="#{gestaoPessoasBean.pessoa.nome}" required="true" />
+
+					<p:outputLabel value="Sexo: " for="sexo" />
+					<p:selectOneMenu id="sexo" value="#{gestaoPessoasBean.pessoa.sexo}"
+						required="true">
+						<f:selectItem itemLabel="Selecione..." />
+						<f:selectItems value="#{gestaoPessoasBean.tiposSexo}"
+							var="tipoSexo" itemLabel="#{tipoSexo.descricao}"
+							itemValue="#{tipoSexo}" />
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Data de Nascimento: " for="idade" />
+					<p:calendar id="idade" mask="99/99/9999" pattern="dd/MM/yyyy"
+						size="25" value="#{gestaoPessoasBean.pessoa.idade}"
+						required="true" />
+
+
+
+					<p:outputLabel value="Cidade: " for="cidade" />
+					<p:inputText id="cidade" size="40" maxlength="100"
+						value="#{gestaoPessoasBean.endereco.cidade}" required="true" />
+
+					<p:outputLabel value="Logradouro: " for="logradouro" />
+					<p:inputText id="logradouro" size="40" maxlength="100"
+						value="#{gestaoPessoasBean.endereco.logradouro}" required="true" />
+
+					<p:outputLabel value="CEP: " for="cep" />
+					<p:inputMask id="cep" size="15" maxlength="8"
+						value="#{gestaoPessoasBean.endereco.cep}" required="true" />
+
+					<p:outputLabel value="UF: " for="estado" />
+					<p:inputText id="estado" size="10" maxlength="2"
+						value="#{gestaoPessoasBean.endereco.estado}" required="true" />
+
+					<p:outputLabel value="Número: " for="numero" />
+					<p:inputText id="numero" size="10" maxlength="15"
+						value="#{gestaoPessoasBean.endereco.numero}" required="true" />
+
+					<h:outputLabel />
+					<p:commandButton id="salvarCommandButton" value="Salvar"
+						actionListener="#{gestaoPessoasBean.salvar}"
+						update="pessoasDataTable pessoaPanelGrid cadastroMessages"
+						oncomplete="if(!args.validationFailed) PF('pessoaDialogWidgetVar').hide()"
+						process="pessoaDialog" />
+				</h:panelGrid>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>
